@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人厨房计划 - 选菜主控台</title>
+    <title>解决选择困难症-点菜</title>
     <style>
         :root {
             --primary: #2d5a27;
@@ -235,11 +235,11 @@
 <body>
     <div class="cursor-dot" id="customCursor"></div>
     <nav>
-        <a href="index.html" class="active">1. 选菜品</a>
-        <a href="list.html">2. 买食材</a>
-        <a href="cook.html">3. 做菜肴</a>
+        <a href="index.html" class="active">1. 点菜</a>
+        <a href="list.html">2. 买菜</a>
+        <a href="cook.html">3. 做菜</a>
     </nav>
-    <h1>📖 阶段一：菜单构建与计划</h1>
+    <h1>📖 阶段一：点菜
     <div class="container">
         <div class="panel" id="formPanel">
             <h2 id="formTitle">➕ 录入独家做法</h2>
@@ -247,9 +247,9 @@
             <div class="form-group">
                 <label>类型 (决定做菜顺序)</label>
                 <select id="selectCategory">
-                    <option value="soup">🍲 慢炖 (耗时，最先做)</option>
-                    <option value="cold">❄️ 凉菜 (中场空闲做)</option>
-                    <option value="hot">🔥 爆炒 (临出锅最后做)</option>
+                    <option value="soup">🍲 慢炖 </option>
+                    <option value="cold">❄️ 凉菜 </option>
+                    <option value="hot">🔥 爆炒 </option>
                 </select>
             </div>
             <div class="form-group"><label>主料 (空格隔开)</label><input type="text" id="inputMain" placeholder="如: 猪肉"></div>
@@ -261,13 +261,13 @@
         </div>
 
         <div class="panel">
-            <h2>🎲 灵感盲盒机</h2>
-            <button class="btn" style="background: var(--accent);" id="btnLucky">摇号抽取今日菜单</button>
+            <h2>🎲 点菜盲盒</h2>
+            <button class="btn" style="background: var(--accent);" id="btnLucky">抽取今日菜单</button>
             <div id="luckyResult" style="text-align: center; margin-top: 15px; color: var(--primary); font-weight: bold;"></div>
         </div>
 
         <div class="panel full-width">
-            <h2>✅ 今日拟定菜单 (数据自动广播)</h2>
+            <h2>✅ 今日菜单 </h2>
             <ul class="recipe-list" id="uiRecipeList"></ul>
         </div>
     </div>
