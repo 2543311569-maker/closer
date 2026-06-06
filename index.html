@@ -130,6 +130,16 @@
                 background: var(--accent);
             }
 
+        .btn-cancel {
+            background: #94a3b8;
+            display: none;
+            margin-top: 10px;
+        }
+
+            .btn-cancel:hover {
+                background: #64748b;
+            }
+
         .recipe-list {
             list-style: none;
             margin-top: 15px;
@@ -144,6 +154,69 @@
                 justify-content: space-between;
                 align-items: center;
                 background: #fff;
+            }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        .tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .tag-hot {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .tag-cold {
+            background: #e0f2fe;
+            color: #0ea5e9;
+        }
+
+        .tag-soup {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* 新增：扁平化操作按钮组 */
+        .action-group {
+            display: flex;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .btn-icon {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-edit {
+            background: #e0f2fe;
+            color: #0ea5e9;
+        }
+
+            .btn-edit:hover {
+                background: #bae6fd;
+            }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+            .btn-delete:hover {
+                background: #fecaca;
             }
 
         .cursor-dot {
@@ -168,8 +241,8 @@
     </nav>
     <h1>📖 阶段一：菜单构建与计划</h1>
     <div class="container">
-        <div class="panel">
-            <h2>➕ 录入独家做法</h2>
+        <div class="panel" id="formPanel">
+            <h2 id="formTitle">➕ 录入独家做法</h2>
             <div class="form-group"><label>菜名</label><input type="text" id="inputName" placeholder="如: 葱爆肉"></div>
             <div class="form-group">
                 <label>类型 (决定做菜顺序)</label>
@@ -184,6 +257,7 @@
             <div class="form-group"><label>调料 (空格隔开)</label><input type="text" id="inputSpice" placeholder="如: 生姜 大蒜"></div>
             <div class="form-group"><label>步骤</label><textarea id="inputMethod" placeholder="如: 大火爆炒。"></textarea></div>
             <button class="btn" id="btnAdd">存入系统库</button>
+            <button class="btn btn-cancel" id="btnCancel">取消修改</button>
         </div>
 
         <div class="panel">
@@ -199,44 +273,53 @@
     </div>
 
     <script>
-        // 鼠标跟随
         window.addEventListener('mousemove', (e) => {
             const cursor = document.getElementById('customCursor');
             if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
         });
 
-        // 初始化兜底数据
         const defaultRecipes = [
             { name: "红烧萝卜炖肉", category: "hot", main: ["五花肉"], sub: ["白萝卜"], spice: ["生姜", "冰糖"], method: "1.焯水。2.炒糖色下肉。3.慢炖40分钟。" },
             { name: "凉拌黄瓜鸡丝", category: "cold", main: ["鸡肉"], sub: ["黄瓜"], spice: ["蒜末", "生抽"], method: "1.煮熟撕丝。2.黄瓜垫底。3.淋入酱汁。" },
             { name: "山药排骨汤", category: "soup", main: ["排骨"], sub: ["山药"], spice: ["枸杞", "盐"], method: "1.冷水焯水。2.大火转文火慢炖1小时。3.加山药再炖。" }
         ];
 
-        // 【核心 API 读取】：尝试从 localStorage 获取数据，如果没有就用默认的
         let myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || defaultRecipes;
         let selectedNames = JSON.parse(localStorage.getItem('selectedNames')) || ["红烧萝卜炖肉", "山药排骨汤"];
 
+        // 核心状态锁：用于判断当前是“新增”还是“修改”
+        let editingIndex = -1;
+
         document.addEventListener('DOMContentLoaded', () => {
             renderList();
-            document.getElementById('btnAdd').addEventListener('click', addNewRecipe);
+            document.getElementById('btnAdd').addEventListener('click', saveRecipe);
+            document.getElementById('btnCancel').addEventListener('click', resetForm);
             document.getElementById('btnLucky').addEventListener('click', runLuckyPick);
         });
 
-        // 渲染列表并【写入】localStorage
         function renderList() {
             localStorage.setItem('myRecipes', JSON.stringify(myRecipes));
             localStorage.setItem('selectedNames', JSON.stringify(selectedNames));
 
             const listObj = document.getElementById('uiRecipeList');
             listObj.innerHTML = "";
-            myRecipes.forEach((item) => {
+            myRecipes.forEach((item, index) => {
                 let isChecked = selectedNames.includes(item.name) ? 'checked' : '';
+                let catTag = item.category === "hot" ? "🔥热菜" : (item.category === "cold" ? "❄️凉菜" : "🍲汤羹");
+
+                // 新增了编辑和删除模块
                 listObj.innerHTML += `
                         <li>
-                            <label style="cursor:none; font-weight:bold;">
+                            <label style="cursor:none; font-weight:bold; flex:1;">
                                 <input type="checkbox" ${isChecked} onchange="toggleSelect('${item.name}', this)"> ${item.name}
                             </label>
-                            <span>${item.category === "hot" ? "🔥热菜" : (item.category === "cold" ? "❄️凉菜" : "🍲汤羹")}</span>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:12px; color:#666;">${catTag}</span>
+                                <div class="action-group">
+                                    <button class="btn-icon btn-edit" onclick="editRecipe(${index})">修改</button>
+                                    <button class="btn-icon btn-delete" onclick="deleteRecipe(${index})">删除</button>
+                                </div>
+                            </div>
                         </li>`;
             });
         }
@@ -244,26 +327,89 @@
         function toggleSelect(name, box) {
             if (box.checked) { if (!selectedNames.includes(name)) selectedNames.push(name); }
             else { selectedNames = selectedNames.filter(n => n !== name); }
-            // 状态改变时，立刻保存到本地缓存
             localStorage.setItem('selectedNames', JSON.stringify(selectedNames));
         }
 
-        function addNewRecipe() {
+        // ====== 核心功能 1：激活修改模式 ======
+        function editRecipe(index) {
+            editingIndex = index;
+            const target = myRecipes[index];
+
+            // 逆向提取数据填入表单
+            document.getElementById('inputName').value = target.name;
+            document.getElementById('selectCategory').value = target.category;
+            document.getElementById('inputMain').value = target.main.join(' ');
+            document.getElementById('inputSub').value = target.sub.join(' ');
+            document.getElementById('inputSpice').value = target.spice.join(' ');
+            document.getElementById('inputMethod').value = target.method;
+
+            // UI 视觉接管：改变面板属性与按钮颜色
+            document.getElementById('formTitle').innerText = "✏️ 修改独家做法";
+            const btnAdd = document.getElementById('btnAdd');
+            btnAdd.innerText = "💾 保存修改";
+            btnAdd.style.background = "var(--accent)";
+            document.getElementById('btnCancel').style.display = "block";
+
+            // 平滑滚动定位回顶部录入区，保证效率体感
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ====== 核心功能 2：保存与覆盖数据 ======
+        function saveRecipe() {
             const name = document.getElementById('inputName').value.trim();
             if (name === "") { alert("菜名不能为空！"); return; }
-            myRecipes.push({
+
+            // 组装最新输入的数据体
+            const currentData = {
                 name: name,
                 category: document.getElementById('selectCategory').value,
                 main: document.getElementById('inputMain').value.split(' ').filter(i => i),
                 sub: document.getElementById('inputSub').value.split(' ').filter(i => i),
                 spice: document.getElementById('inputSpice').value.split(' ').filter(i => i),
                 method: document.getElementById('inputMethod').value
-            });
-            renderList();
-            alert("录入成功！");
+            };
+
+            if (editingIndex > -1) {
+                // 如果处于修改模式：处理旧名字与新名字的关系
+                const oldName = myRecipes[editingIndex].name;
+                myRecipes[editingIndex] = currentData; // 覆盖底层数组
+
+                // 如果在修改时改了菜名，且这道菜正好被勾选了，需要同步更新勾选池
+                if (oldName !== name && selectedNames.includes(oldName)) {
+                    selectedNames = selectedNames.filter(n => n !== oldName);
+                    selectedNames.push(name);
+                }
+            } else {
+                // 如果是正常的录入模式：推入新数据
+                myRecipes.push(currentData);
+            }
+
+            resetForm(); // 重置表单 UI
+            renderList(); // 重新渲染全局 DOM
         }
 
-        // 考点：第一个 do-while 循环
+        // ====== 核心功能 3：删除数据 ======
+        function deleteRecipe(index) {
+            const confirmDel = confirm(`确定要把【${myRecipes[index].name}】从系统库中彻底抹除吗？`);
+            if (confirmDel) {
+                const targetName = myRecipes[index].name;
+                myRecipes.splice(index, 1); // 从数组核心剔除
+                selectedNames = selectedNames.filter(n => n !== targetName); // 从勾选队列剔除
+                renderList();
+            }
+        }
+
+        // ====== 表单 UI 状态重置 ======
+        function resetForm() {
+            editingIndex = -1;
+            document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+            document.getElementById('formTitle').innerText = "➕ 录入独家做法";
+            const btnAdd = document.getElementById('btnAdd');
+            btnAdd.innerText = "存入系统库";
+            btnAdd.style.background = "var(--primary)";
+            document.getElementById('btnCancel').style.display = "none";
+        }
+
         let lastPick = "";
         function runLuckyPick() {
             if (myRecipes.length === 0) return;
