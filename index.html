@@ -239,7 +239,7 @@
         <a href="list.html">2. 买菜</a>
         <a href="cook.html">3. 做菜</a>
     </nav>
-    <h1>📖 阶段一：点菜
+    <h1>📖 阶段一：点菜</h1>
     <div class="container">
         <div class="panel" id="formPanel">
             <h2 id="formTitle">➕ 录入独家做法</h2>
@@ -279,13 +279,14 @@
         });
 
         const defaultRecipes = [
-            { name: "红烧萝卜炖肉", category: "hot", main: ["五花肉"], sub: ["白萝卜"], spice: ["生姜", "冰糖"], method: "1.焯水。2.炒糖色下肉。3.慢炖40分钟。" },
-            { name: "凉拌黄瓜鸡丝", category: "cold", main: ["鸡肉"], sub: ["黄瓜"], spice: ["蒜末", "生抽"], method: "1.煮熟撕丝。2.黄瓜垫底。3.淋入酱汁。" },
-            { name: "山药排骨汤", category: "soup", main: ["排骨"], sub: ["山药"], spice: ["枸杞", "盐"], method: "1.冷水焯水。2.大火转文火慢炖1小时。3.加山药再炖。" }
+            { name: "土豆炖牛腩", category: "hot", main: ["牛腩"], sub: ["土豆"], spice: ["老姜", "冰糖", "香葱", "生抽", "盐"], method: "1.将牛腩肉洗净并沥干水分，切成2-3厘米见方的方块,土豆削皮，切成小块，浸泡在水中防止氧化。2.牛腩肉放入煮锅中，加入足够的冷水，移至大火上，烧开后继续汆烫5-8分钟，倒掉汤汁，捞出牛腩肉块，用热的流动水冲去杂质。3.大火加热炒锅中的油，放入香葱结（或大葱1根，切成大段）、老姜片和炒出香气。4.把锅中的香葱结和姜片挑出，加入牛腩块煸炒至表面收紧，加入切好的土豆块。调入生抽，倒入可以没过锅中食材的热水，调入盐和冰糖，改大火煮沸后转小火煮2小时。5.出锅前改大火煮沸2分钟，至肉烂汁浓即可，出锅时点缀香葱" },
+            { name: "拍黄瓜", category: "cold", main: ["黄瓜"], sub: ["小米辣"], spice: ["蒜末", "生抽", "盐", "香醋", "辣椒油", "小葱"], method: "1.黄瓜洗净拍碎，斜刀切块。2.蒜切末，葱、小米辣切小段。3.拍好的黄瓜先加入小半勺的盐拌均腌着备用。4.取一小碗依次加入辣椒油、生抽、香醋、和切好的辣椒葱蒜拌均。5.将调好的汁料倒入黄瓜里拌均匀" },
+            { name: "胡萝卜排骨汤", category: "soup", main: ["排骨"], sub: ["胡萝卜"], spice: ["姜" ,"盐"],method: "1.洗净排骨后加入姜片焯水。 2.大胡萝卜切块和排骨放入锅中加水、盐火慢炖1小时。" },
+            { name: "椒麻鸡", category: "cold", main: ["蛋鸡"], sub: ["香菜"], spice: ["辣椒20g", "花椒200g","黄栀子两粒","草果两粒","白蔻5g","白芷4g","干姜50g", "八角5g","香叶3g","小茴香5g"], method: "1.蛋鸡泡水去血后冷水焯水。2.将香料泡水洗净入锅盖盖煮一小时。3.炒料：一炒勺油，辣椒切碎放入，小火慢炒，炒出辣椒油辣椒加汤汁（约一电饭锅）放入电饭煲熬煮花椒与油比例1: 3，开始熬花椒油，全程小火慢熬，加少许葱叶，大约需要熬4小时辣椒汤汁熬煮一小时后，加入葱姜蒜鸡精各一把，花椒味精各一汤勺，再熬煮15分钟5.拌鸡鸡肉撕好加配菜，放入3勺盐。" }
         ];
 
         let myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || defaultRecipes;
-        let selectedNames = JSON.parse(localStorage.getItem('selectedNames')) || ["红烧萝卜炖肉", "山药排骨汤"];
+                let selectedNames = JSON.parse(localStorage.getItem('selectedNames')) || ["土豆炖牛腩", "胡萝卜排骨汤"];
 
         // 核心状态锁：用于判断当前是“新增”还是“修改”
         let editingIndex = -1;
@@ -310,7 +311,7 @@
                 // 新增了编辑和删除模块
                 listObj.innerHTML += `
                         <li>
-                            <label style="cursor:none; font-weight:bold; flex:1;">
+                            <label style="display:flex;align-items:center;gap: 8px;text-align:left;cursor:none; font-weight:bold; flex:1;">
                                 <input type="checkbox" ${isChecked} onchange="toggleSelect('${item.name}', this)"> ${item.name}
                             </label>
                             <div style="display:flex; align-items:center; gap:10px;">
@@ -403,7 +404,9 @@
         function resetForm() {
             editingIndex = -1;
             document.querySelectorAll('input[type="text"], textarea').forEach(el => el.value = '');
+            document.getElementById('selectCategory').selectedIndex = 0;
             document.getElementById('formTitle').innerText = "➕ 录入独家做法";
+
             const btnAdd = document.getElementById('btnAdd');
             btnAdd.innerText = "存入系统库";
             btnAdd.style.background = "var(--primary)";
