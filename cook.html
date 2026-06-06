@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人厨房计划 - 烹饪工序台</title>
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --accent: #d97706;
+            --bg: #fffbf5;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', sans-serif;
+            cursor: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            padding: 20px;
+            padding-bottom: 60px;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+            nav a {
+                text-decoration: none;
+                color: var(--primary);
+                font-weight: bold;
+                padding: 10px 20px;
+                border-radius: 8px;
+                background: #eee;
+                transition: 0.3s;
+            }
+
+                nav a:hover, nav a.active {
+                    background: var(--primary);
+                    color: white;
+                }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .panel {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        h1, h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .step-list {
+            list-style: none;
+            position: relative;
+            padding-left: 20px;
+        }
+
+            .step-list::before {
+                content: '';
+                position: absolute;
+                left: 4px;
+                top: 10px;
+                bottom: 10px;
+                width: 2px;
+                background: var(--border);
+            }
+
+            .step-list li {
+                position: relative;
+                margin-bottom: 20px;
+                background: #f8fafc;
+                padding: 20px;
+                border-radius: 8px;
+                border-left: 4px solid var(--primary);
+            }
+
+                .step-list li::after {
+                    content: '';
+                    position: absolute;
+                    left: -21px;
+                    top: 20px;
+                    width: 10px;
+                    height: 10px;
+                    background: var(--accent);
+                    border-radius: 50%;
+                }
+
+        .tool-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #fff7ed;
+            border: 1px solid #ffedd5;
+            color: #c2410c;
+            border-radius: 6px;
+            margin: 5px;
+            font-weight: bold;
+        }
+
+        .cursor-dot {
+            width: 20px;
+            height: 20px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor-dot" id="customCursor"></div>
+    <nav>
+        <a href="index.html">1. 选菜品</a>
+        <a href="list.html">2. 买食材</a>
+        <a href="cook.html" class="active">3. 做菜肴</a>
+    </nav>
+    <h1>🍳 阶段三：备餐工艺与秩序中心</h1>
+    <div class="container">
+        <div class="panel full-width">
+            <h2>🥣 配备备餐器具</h2>
+            <div id="toolOutput" style="text-align: center; padding: 10px 0;"></div>
+        </div>
+        <div class="panel full-width">
+            <h2>⏱️ 烹饪统筹流水线</h2>
+            <ul class="step-list" id="uiCookSteps"></ul>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('mousemove', (e) => {
+            const cursor = document.getElementById('customCursor');
+            if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 【核心 API 读取】：直接读取共享数据
+            const myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || [];
+            const selectedNames = JSON.parse(localStorage.getItem('selectedNames')) || [];
+
+            if (selectedNames.length === 0) {
+                document.getElementById('toolOutput').innerHTML = "<p style='color:#999;'>未检测到预定菜单。</p>";
+                return;
+            }
+
+            let currentTasks = myRecipes.filter(item => selectedNames.includes(item.name));
+
+            // 考点：第 2 个 do-while (计算需要的各种盘子碗数量)
+            let totalDishes = 0; let totalBowls = 0; let loopIdx = 0;
+            if (currentTasks.length > 0) {
+                do {
+                    let task = currentTasks[loopIdx];
+                    totalDishes += 1 + (task.main ? task.main.length : 0);
+                    totalBowls += (task.spice ? task.spice.length : 0);
+                    loopIdx++;
+                } while (loopIdx < currentTasks.length);
+            }
+
+            document.getElementById('toolOutput').innerHTML = `
+                    <div class="tool-badge">🍽️ 装菜盘/备菜碟：需 ${totalDishes} 个</div>
+                    <div class="tool-badge">🥣 调味小料碗：需 ${totalBowls} 个</div>
+                `;
+
+            // 算法：按类别优先级重新排序
+            let soupChain = currentTasks.filter(r => r.category === "soup");
+            let coldChain = currentTasks.filter(r => r.category === "cold");
+            let hotChain = currentTasks.filter(r => r.category === "hot");
+            let finalSequence = [...soupChain, ...coldChain, ...hotChain];
+
+            const stepsUl = document.getElementById('uiCookSteps');
+            finalSequence.forEach((item, index) => {
+                let tipText = item.category === "soup" ? "🍲 最先处理，后台慢炖。" :
+                    (item.category === "cold" ? "❄️ 利用空闲间隙处理。" : "🔥 最后爆炒出锅。");
+
+                stepsUl.innerHTML += `
+                        <li>
+                            <h3 style="color:var(--primary); margin-bottom:5px;">工序 ${index + 1}：【${item.name}】</h3>
+                            <p style="font-size:13px; color:var(--accent); font-weight:bold; margin-bottom:8px;">💡 统筹: ${tipText}</p>
+                            <div style="background: white; padding: 12px; border: 1px dashed #ccc; border-radius: 6px; font-size: 14px;">
+                                <strong>📝 操作规程：</strong><br>${item.method || "暂无步骤。"}
+                            </div>
+                        </li>`;
+            });
+        });
+    </script>
+</body>
+</html>

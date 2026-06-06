@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人厨房计划 - 采购清单</title>
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --accent: #d97706;
+            --bg: #fffbf5;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', sans-serif;
+            cursor: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            padding: 20px;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+            nav a {
+                text-decoration: none;
+                color: var(--primary);
+                font-weight: bold;
+                padding: 10px 20px;
+                border-radius: 8px;
+                background: #eee;
+                transition: 0.3s;
+            }
+
+                nav a:hover, nav a.active {
+                    background: var(--primary);
+                    color: white;
+                }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        h1, h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .shop-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+            .shop-list li {
+                padding: 15px;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+        .bought {
+            text-decoration: line-through;
+            color: #cbd5e1 !important;
+        }
+
+        .btn-check {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .cursor-dot {
+            width: 20px;
+            height: 20px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor-dot" id="customCursor"></div>
+    <nav>
+        <a href="index.html">1. 选菜品</a>
+        <a href="list.html" class="active">2. 买食材</a>
+        <a href="cook.html">3. 做菜肴</a>
+    </nav>
+    <h1>🛒 阶段二：物资采购核对</h1>
+    <div class="container">
+        <div class="panel">
+            <h2>智能采买阵列</h2>
+            <ul class="shop-list" id="uiShopList"></ul>
+        </div>
+    </div>
+    <script>
+        window.addEventListener('mousemove', (e) => {
+            const cursor = document.getElementById('customCursor');
+            if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 【核心 API 读取】：直接读取第一页存入的共享数据
+            const myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || [];
+            const selectedNames = JSON.parse(localStorage.getItem('selectedNames')) || [];
+            const listContainer = document.getElementById('uiShopList');
+
+            if (selectedNames.length === 0) {
+                listContainer.innerHTML = "<p style='text-align:center;color:#999;'>未检测到菜单，请返回第一步操作。</p>";
+                return;
+            }
+
+            let rawIngredients = [];
+
+            // 考点：双重 for 循环提取食材
+            for (let i = 0; i < selectedNames.length; i++) {
+                let targetName = selectedNames[i];
+                for (let j = 0; j < myRecipes.length; j++) {
+                    if (myRecipes[j].name === targetName) {
+                        rawIngredients = rawIngredients.concat(myRecipes[j].main, myRecipes[j].sub, myRecipes[j].spice);
+                    }
+                }
+            }
+
+            // 利用 Set 去重
+            let finalIngredients = [...new Set(rawIngredients)].filter(item => item);
+
+            finalIngredients.forEach((item, index) => {
+                listContainer.innerHTML += `
+                        <li id="ing-${index}">
+                            <span class="ing-name" style="font-weight:bold;">📦 ${item}</span>
+                            <button class="btn-check" onclick="markBought(${index}, this)">等待采购</button>
+                        </li>`;
+            });
+        });
+
+        function markBought(index, btn) {
+            const text = document.getElementById(`ing-${index}`).querySelector('.ing-name');
+            text.classList.toggle('bought');
+            if (text.classList.contains('bought')) {
+                btn.innerText = "已买到"; btn.style.background = "var(--primary)"; btn.style.color = "white";
+            } else {
+                btn.innerText = "等待采购"; btn.style.background = "#f1f5f9"; btn.style.color = "#333";
+            }
+        }
+    </script>
+</body>
+</html>

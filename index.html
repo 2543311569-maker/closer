@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人厨房计划 - 选菜主控台</title>
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --accent: #d97706;
+            --bg: #fffbf5;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', sans-serif;
+            cursor: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            padding: 20px;
+            padding-bottom: 60px;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+            nav a {
+                text-decoration: none;
+                color: var(--primary);
+                font-weight: bold;
+                padding: 10px 20px;
+                border-radius: 8px;
+                background: #eee;
+                transition: 0.3s;
+            }
+
+                nav a:hover, nav a.active {
+                    background: var(--primary);
+                    color: white;
+                }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .full-width {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .panel {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        h1, h2 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-size: 14px;
+                font-weight: bold;
+                color: #555;
+            }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            background: #fafafa;
+            transition: 0.3s;
+        }
+
+            input:focus, select:focus, textarea:focus {
+                border-color: var(--primary);
+                background: #fff;
+            }
+
+        textarea {
+            resize: none;
+            height: 60px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+            .btn:hover {
+                background: var(--accent);
+            }
+
+        .recipe-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+            .recipe-list li {
+                padding: 12px;
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                margin-bottom: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #fff;
+            }
+
+        .cursor-dot {
+            width: 20px;
+            height: 20px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor-dot" id="customCursor"></div>
+    <nav>
+        <a href="index.html" class="active">1. 选菜品</a>
+        <a href="list.html">2. 买食材</a>
+        <a href="cook.html">3. 做菜肴</a>
+    </nav>
+    <h1>📖 阶段一：菜单构建与计划</h1>
+    <div class="container">
+        <div class="panel">
+            <h2>➕ 录入独家做法</h2>
+            <div class="form-group"><label>菜名</label><input type="text" id="inputName" placeholder="如: 葱爆肉"></div>
+            <div class="form-group">
+                <label>类型 (决定做菜顺序)</label>
+                <select id="selectCategory">
+                    <option value="soup">🍲 慢炖 (耗时，最先做)</option>
+                    <option value="cold">❄️ 凉菜 (中场空闲做)</option>
+                    <option value="hot">🔥 爆炒 (临出锅最后做)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>主料 (空格隔开)</label><input type="text" id="inputMain" placeholder="如: 猪肉"></div>
+            <div class="form-group"><label>辅料 (空格隔开)</label><input type="text" id="inputSub" placeholder="如: 大葱"></div>
+            <div class="form-group"><label>调料 (空格隔开)</label><input type="text" id="inputSpice" placeholder="如: 生姜 大蒜"></div>
+            <div class="form-group"><label>步骤</label><textarea id="inputMethod" placeholder="如: 大火爆炒。"></textarea></div>
+            <button class="btn" id="btnAdd">存入系统库</button>
+        </div>
+
+        <div class="panel">
+            <h2>🎲 灵感盲盒机</h2>
+            <button class="btn" style="background: var(--accent);" id="btnLucky">摇号抽取今日菜单</button>
+            <div id="luckyResult" style="text-align: center; margin-top: 15px; color: var(--primary); font-weight: bold;"></div>
+        </div>
+
+        <div class="panel full-width">
+            <h2>✅ 今日拟定菜单 (数据自动广播)</h2>
+            <ul class="recipe-list" id="uiRecipeList"></ul>
+        </div>
+    </div>
+
+    <script>
+        // 鼠标跟随
+        window.addEventListener('mousemove', (e) => {
+            const cursor = document.getElementById('customCursor');
+            if (cursor) { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; }
+        });
+
+        // 初始化兜底数据
+        const defaultRecipes = [
+            { name: "红烧萝卜炖肉", category: "hot", main: ["五花肉"], sub: ["白萝卜"], spice: ["生姜", "冰糖"], method: "1.焯水。2.炒糖色下肉。3.慢炖40分钟。" },
+            { name: "凉拌黄瓜鸡丝", category: "cold", main: ["鸡肉"], sub: ["黄瓜"], spice: ["蒜末", "生抽"], method: "1.煮熟撕丝。2.黄瓜垫底。3.淋入酱汁。" },
+            { name: "山药排骨汤", category: "soup", main: ["排骨"], sub: ["山药"], spice: ["枸杞", "盐"], method: "1.冷水焯水。2.大火转文火慢炖1小时。3.加山药再炖。" }
+        ];
+
+        // 【核心 API 读取】：尝试从 localStorage 获取数据，如果没有就用默认的
+        let myRecipes = JSON.parse(localStorage.getItem('myRecipes')) || defaultRecipes;
+        let selectedNames = JSON.parse(localStorage.getItem('selectedNames')) || ["红烧萝卜炖肉", "山药排骨汤"];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderList();
+            document.getElementById('btnAdd').addEventListener('click', addNewRecipe);
+            document.getElementById('btnLucky').addEventListener('click', runLuckyPick);
+        });
+
+        // 渲染列表并【写入】localStorage
+        function renderList() {
+            localStorage.setItem('myRecipes', JSON.stringify(myRecipes));
+            localStorage.setItem('selectedNames', JSON.stringify(selectedNames));
+
+            const listObj = document.getElementById('uiRecipeList');
+            listObj.innerHTML = "";
+            myRecipes.forEach((item) => {
+                let isChecked = selectedNames.includes(item.name) ? 'checked' : '';
+                listObj.innerHTML += `
+                        <li>
+                            <label style="cursor:none; font-weight:bold;">
+                                <input type="checkbox" ${isChecked} onchange="toggleSelect('${item.name}', this)"> ${item.name}
+                            </label>
+                            <span>${item.category === "hot" ? "🔥热菜" : (item.category === "cold" ? "❄️凉菜" : "🍲汤羹")}</span>
+                        </li>`;
+            });
+        }
+
+        function toggleSelect(name, box) {
+            if (box.checked) { if (!selectedNames.includes(name)) selectedNames.push(name); }
+            else { selectedNames = selectedNames.filter(n => n !== name); }
+            // 状态改变时，立刻保存到本地缓存
+            localStorage.setItem('selectedNames', JSON.stringify(selectedNames));
+        }
+
+        function addNewRecipe() {
+            const name = document.getElementById('inputName').value.trim();
+            if (name === "") { alert("菜名不能为空！"); return; }
+            myRecipes.push({
+                name: name,
+                category: document.getElementById('selectCategory').value,
+                main: document.getElementById('inputMain').value.split(' ').filter(i => i),
+                sub: document.getElementById('inputSub').value.split(' ').filter(i => i),
+                spice: document.getElementById('inputSpice').value.split(' ').filter(i => i),
+                method: document.getElementById('inputMethod').value
+            });
+            renderList();
+            alert("录入成功！");
+        }
+
+        // 考点：第一个 do-while 循环
+        let lastPick = "";
+        function runLuckyPick() {
+            if (myRecipes.length === 0) return;
+            let pickName = ""; let safeCounter = 0;
+            do {
+                let randomIndex = Math.floor(Math.random() * myRecipes.length);
+                pickName = myRecipes[randomIndex].name;
+                safeCounter++;
+                if (safeCounter > 10) break;
+            } while (pickName === lastPick && myRecipes.length > 1);
+
+            lastPick = pickName;
+            if (!selectedNames.includes(pickName)) { selectedNames.push(pickName); renderList(); }
+            document.getElementById('luckyResult').innerHTML = `🎯 盲盒选中：${pickName}`;
+        }
+    </script>
+</body>
+</html>
